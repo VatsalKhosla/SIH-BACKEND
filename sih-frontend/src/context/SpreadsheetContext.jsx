@@ -3,14 +3,29 @@ import { updateSheet } from "@/lib/api/sheet";
 import { useEffect } from "react";
 import { useContext, createContext, useState } from "react";
 import { useParams } from "react-router-dom";
+import { io } from 'socket.io-client';
 
 const SpreadsheetContext = createContext();
+const socket = io('http://localhost:3000');
 
 export const SpreadsheetProvider = ({ children }) => {
   const [rowData, setRowData] = useState([]);
   const [columnDefs, setColumnDefs] = useState([]);
   const { sheetId } = useParams();
 
+   useEffect(() => {
+    socket.on('cellUpdate', (data) => {
+      const { rowIndex, colIndex, newValue } = data;
+      const updatedRowData = [...rowData];
+      updatedRowData[rowIndex][colIndex] = newValue;
+      setRowData(updatedRowData);
+    });
+
+    return () => {
+      socket.off('cellUpdate');
+    };
+  }, [rowData]);
+     
   useEffect(() => {
     console.log("SHEETID: ", sheetId);
   }, [sheetId]);
