@@ -1,9 +1,37 @@
 import express, { urlencoded } from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
+import { Server } from 'socket.io';
+import http from 'http';
 
 
-const app = express()
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('cellUpdated', (data) => {
+    console.log('Cell updated:', data);
+    socket.broadcast.emit('cellUpdate', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
