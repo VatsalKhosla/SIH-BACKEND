@@ -8,6 +8,9 @@ import { useParams } from "react-router-dom";
 
 import { useSpreadsheet } from "@/context/SpreadsheetContext";
 import { updateSheet } from "@/lib/api/sheet";
+import { io } from "socket.io-client";
+
+const socket = io('http://localhost:3000');
 
 const SpreadSheet = () => {
   const { columnDefs, setColumnDefs, rowData, setRowData } = useSpreadsheet();
@@ -28,6 +31,12 @@ const SpreadSheet = () => {
     const colIndex = columnDefs.findIndex((col) => col.field === colDef.field);
     const rowIndex = rowData.indexOf(data);
 
+     socket.emit('cellUpdated', {
+      rowIndex,
+      colIndex,
+      newValue,
+    });
+    
     if (rowIndex === -1 || colIndex === -1) {
       console.error("Error: Could not find the row or column to update.");
       return;
